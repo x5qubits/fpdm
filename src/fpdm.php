@@ -38,7 +38,8 @@ $FPDM_FILTERS=array(); //holds all supported filters
 $FPDM_REGEXPS= array(
 	//FIX: parse checkbox definition
 	"/AS"=>"/\/AS\s+\/(\w+)$/",
-	"name"=>"/\/(\w+)/",
+	// allow ON states like /31.5 (contains dot) for checkbox appearance names
+	"name"=>"/\/([A-Za-z0-9_.-]+)/",
 	// "/AP_D_SingleLine"=>"/\/D\s+\/(\w+)\s+\d+\s+\d+\s+R\s+\/(\w+)$/",
 	//ENDFIX
 	"/Type"=>"/\/Type\s+\/(\w+)$/",
@@ -944,18 +945,47 @@ if (!call_user_func_array('class_exists', $__tmp)) {
             $verbose_set=($this->verbose&&($this->verbose_level>1));
             //Get the line(s) of the misc field values
             if (isset($this->value_entries["$name"])) {
+<<<<<<< HEAD
                 if (isset($this->value_entries["$name"]["infos"]["checkbox_state_line"])
                 && isset($this->value_entries["$name"]["infos"]["checkbox_no"])
                 && isset($this->value_entries["$name"]["infos"]["checkbox_yes"])) {
+=======
+                if (isset($this->value_entries["$name"]["infos"]["checkbox_state_line"])) {
+>>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                     $field_checkbox_line=$this->value_entries["$name"]["infos"]["checkbox_state_line"];
                     if ($field_checkbox_line) {
                         if ($verbose_set) {
                             echo "<br>Change checkbox of the field $name at line $field_checkbox_line to value [$value]";
                         }
+<<<<<<< HEAD
                         $state = $this->value_entries["$name"]["infos"]["checkbox_no"];
                         if ($value) {
                             $state = $this->value_entries["$name"]["infos"]["checkbox_yes"];
                         }
+=======
+                        $stateOff = isset($this->value_entries["$name"]["infos"]["checkbox_no"])
+                            ? $this->value_entries["$name"]["infos"]["checkbox_no"]
+                            : 'Off';
+                        $stateOn = isset($this->value_entries["$name"]["infos"]["checkbox_yes"])
+                            ? $this->value_entries["$name"]["infos"]["checkbox_yes"]
+                            : '';
+
+                        // Fallback: use explicit value state (e.g. "/31.5", "31.5", "/v4")
+                        // when parser couldn't infer checkbox_yes from AP entries.
+                        $rawValue = trim((string)$value);
+                        if ($stateOn === '' && $rawValue !== '' && strtolower($rawValue) !== 'off') {
+                            if (substr($rawValue, 0, 1) === '/') {
+                                $rawValue = substr($rawValue, 1);
+                            }
+                            $stateOn = trim($rawValue);
+                        }
+
+                        $state = $stateOff;
+                        if ($value && $stateOn !== '') {
+                            $state = $stateOn;
+                        }
+
+>>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                         $CurLine =$this->pdf_entries[$field_checkbox_line];
                         $OldLen=strlen($CurLine);
                         $CurLine = '/AS /'.$state;
@@ -964,6 +994,38 @@ if (!call_user_func_array('class_exists', $__tmp)) {
                         $this->shift=$this->shift+$Shift;
                         //Saves
                         $this->pdf_entries[$field_checkbox_line]=$CurLine;
+<<<<<<< HEAD
+=======
+
+                        // Also update/inject /V so Adobe Reader honours the checked state.
+                        // Adobe requires /V (not just /AS). These templates have NO /V entry
+                        // at all on checkbox widgets, so we must inject it after the /AS line.
+                        $vUpdated = false;
+                        // 1. Try to find an existing /V /Name line within ±20 lines
+                        $scanStart = max(0, $field_checkbox_line - 20);
+                        $scanEnd   = min(count($this->pdf_entries) - 1, $field_checkbox_line + 20);
+                        for ($vl = $scanStart; $vl <= $scanEnd; $vl++) {
+                            if (preg_match('#/V\s*/\w[\w.]*#', $this->pdf_entries[$vl])) {
+                                $vOldLen  = strlen($this->pdf_entries[$vl]);
+                                $this->pdf_entries[$vl] = preg_replace('#(/V\s*)/\w[\w.]*#', '$1/' . $state, $this->pdf_entries[$vl]);
+                                $vShift   = strlen($this->pdf_entries[$vl]) - $vOldLen;
+                                $this->shift += $vShift;
+                                $Shift   += $vShift;
+                                $vUpdated = true;
+                                break;
+                            }
+                        }
+                        // 2. /V absent entirely — append "/V /state" onto the same /AS entry
+                        // (do NOT use array_splice — inserting a new element corrupts xref offsets)
+                        if (!$vUpdated) {
+                            $inject = "\n/V /" . $state;
+                            $this->pdf_entries[$field_checkbox_line] .= $inject;
+                            $vShift = strlen($inject);
+                            $this->shift += $vShift;
+                            $Shift += $vShift;
+                        }
+
+>>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                         return $Shift;
                     // $offset_shift=$this->_set_field_value($field_checkbox_line, $state);
                     } else {
@@ -1621,21 +1683,18 @@ if (!call_user_func_array('class_exists', $__tmp)) {
          */
 		function parsePDFEntries(&$lines){
 		//--------------------------------
-           
-           $entries=&$this->pdf_entries;
-           
-           $CountLines = count($entries);
-           
-            $Counter=0;
-            $obj=0; //this is an invalid object id, we use it to know if we are into an object
-            //FIX: parse checkbox definition
-            $ap_d_yes='';
-            $ap_d_no='';
-            $ap_line=0;
-            $ap_d_line=0;
-            $as='';
-            //ENDFIX
-            $type='';
+			$entries=&$this->pdf_entries;
+			$CountLines = count($entries);
+			$Counter=0;
+			$obj=0; //this is an invalid object id, we use it to know if we are into an object
+			//FIX: parse checkbox definition
+			$ap_d_yes='';
+			$ap_d_no='';
+			$ap_line=0;
+			$ap_d_line=0;
+			$as='';
+			//ENDFIX
+			$type='';
 			$subtype='';
 			$name='';
 			$value='';
@@ -1651,6 +1710,11 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 			$creator='';
 			$producer='';
 			$creationDate='';
+			//FIX: nested field support via /Parent chain
+			$parentObjId=0; // /Parent reference for current object
+			$_objNames=array(); // objId => local /T name
+			$_objParents=array(); // objId => parent objId
+			//ENDFIX
 			
 			$verbose_parsing=($this->verbose&&($this->verbose_level>3));
 			$verbose_decoding=($this->verbose&&($this->verbose_level>4));
@@ -1723,6 +1787,7 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 								$name='';
 								$value='';
 								$maxLen=0;
+								$parentObjId=0; //FIX: reset parent for next object
 								
 							} else {
 							
@@ -1846,36 +1911,40 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 									$match=array();
 									//FIX: parse checkbox definition
 									if($this->useCheckboxParser && ('' == $ap_d_yes || '' == $ap_d_no || '' == $as)) {
-                                        if (!$ap_line && '/AP' == substr($CurLine, 0, 3)) {
-                                            if ($verbose_parsing) {
-                                                echo("<br>Found AP Line '<i>$Counter</i>'");
-                                            }
-                                            $ap_line = $Counter;
-                                        } elseif (!$ap_d_line && '/D' == substr($CurLine, 0, 2)) {
-                                            if ($verbose_parsing) {
-                                                echo("<br>Found D Line '<i>$Counter</i>'");
-                                            }
-                                            $ap_d_line = $Counter;
-                                        } elseif (($ap_line==$Counter-4)&&($ap_d_line==$Counter-2)&&($ap_d_yes=='')&&$this->extract_pdf_definition_value("name", $CurLine, $match)) {
-                                            $ap_d_yes=$match[1];
-                                            if ($verbose_parsing) {
-                                                echo("<br>Object's checkbox_yes is '<i>$ap_d_yes</i>'");
-                                            }
-                                            $object["infos"]["checkbox_yes"]=$ap_d_yes;
-                                        } elseif (($ap_line==$Counter-5)&&($ap_d_line==$Counter-3)&&($ap_d_no=='')&&$this->extract_pdf_definition_value("name", $CurLine, $match)) {
-                                            $ap_d_no=$match[1];
-                                            if ($verbose_parsing) {
-                                                echo("<br>Object's checkbox_no is '<i>$ap_d_no</i>'");
-                                            }
-                                            $object["infos"]["checkbox_no"]=$ap_d_no;
-                                        } elseif (($as=='')&&$this->extract_pdf_definition_value("/AS", $CurLine, $match)) {
-                                            $as=$match[1];
-                                            if ($verbose_parsing) {
-                                                echo("<br>Object's AS is '<i>$as</i>'");
-                                            }
-                                            $object["infos"]["checkbox_state"]=$as;
-                                            $object["infos"]["checkbox_state_line"]=$Counter;
-                                        }
+									    if (!$ap_line && '/AP' == substr($CurLine, 0, 3)) {
+										    if ($verbose_parsing) {
+											    echo("<br>Found AP Line '<i>$Counter</i>'");
+										    }
+										    $ap_line = $Counter;
+									    } elseif (!$ap_d_line && '/D' == substr($CurLine, 0, 2)) {
+										    if ($verbose_parsing) {
+											    echo("<br>Found D Line '<i>$Counter</i>'");
+										    }
+										    $ap_d_line = $Counter;
+									    } elseif (($ap_line==$Counter-4)&&($ap_d_line==$Counter-2)&&($ap_d_yes=='')&&$this->extract_pdf_definition_value("name", $CurLine, $match)) {
+										    $ap_d_yes=$match[1];
+										    if ($verbose_parsing) {
+											    echo("<br>Object's checkbox_yes is '<i>$ap_d_yes</i>'");
+										    }
+										    $object["infos"]["checkbox_yes"]=$ap_d_yes;
+									    } elseif (($ap_line==$Counter-5)&&($ap_d_line==$Counter-3)&&($ap_d_no=='')&&$this->extract_pdf_definition_value("name", $CurLine, $match)) {
+										    $ap_d_no=$match[1];
+										    if ($verbose_parsing) {
+											    echo("<br>Object's checkbox_no is '<i>$ap_d_no</i>'");
+										    }
+										    $object["infos"]["checkbox_no"]=$ap_d_no;
+									    } elseif (($as=='')&&$this->extract_pdf_definition_value("/AS", $CurLine, $match)) {
+										    $as=$match[1];
+										    if ($verbose_parsing) {
+											    echo("<br>Object's AS is '<i>$as</i>'");
+										    }
+										    $object["infos"]["checkbox_state"]=$as;
+										    $object["infos"]["checkbox_state_line"]=$Counter;
+									    }
+									    // Capture /V /Name line so set_field_checkbox can update it for Adobe Reader
+									    if (!isset($object["infos"]["checkbox_v_line"]) && preg_match('#^/V\s+/\w[\w.]*#', $CurLine)) {
+										    $object["infos"]["checkbox_v_line"] = $Counter;
+									    }
 									}
 									//ENDFIX
 									if(($type=='')||($subtype=='')||($name=="")) {
@@ -1895,7 +1964,6 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 											
 										}
 										if(($name=="")&&preg_match("/^\/T\s?\((.+)\)\s*$/",$this->_protectContentValues($CurLine),$match)) {
-								
 											$name=$this->_unprotectContentValues($match[1]);
 											//FIX: convert ASCII object names to utf-8
 											// don't use utf8_encode($name) yet, it's core function since php 7.2
@@ -1908,7 +1976,12 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 											
 											//$this->dumpContent(" Name [$name]");
 										}
-										
+										//FIX: capture /Parent reference for nested field resolution
+										if($parentObjId==0 && preg_match("/^\/Parent\s+(\d+)\s+0\s+R/",$CurLine,$parentMatch)) {
+											$parentObjId=intval($parentMatch[1]);
+										}
+										//ENDFIX
+
 									}// else { 
 									
 										//=== CONTENT ====
@@ -2111,6 +2184,40 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 				}
 			}
 			
+			//FIX: Post-process nested fields — rebuild full dotted paths
+			// Replace __obj_X temp keys with full dotted names like "clasa_caen.0.1"
+			if(!empty($_objParents)) {
+				// Helper: build full dotted name for an object by walking /Parent chain
+				$_buildFullName = function($objId) use (&$_objNames, &$_objParents) {
+					$parts = array();
+					$current = $objId;
+					$maxDepth = 20; // safety limit
+					while(isset($_objNames[$current]) && $maxDepth-- > 0) {
+						$parts[] = $_objNames[$current];
+						$current = isset($_objParents[$current]) ? $_objParents[$current] : null;
+					}
+					return implode('.', array_reverse($parts));
+				};
+
+				// Find all temp-keyed entries and replace with full dotted names
+				$tempKeys = array();
+				foreach(array_keys($lines) as $key) {
+					if(strpos($key, '__obj_') === 0) {
+						$tempKeys[] = $key;
+					}
+				}
+				foreach($tempKeys as $tempKey) {
+					$oid = intval(substr($tempKey, 6)); // strip "__obj_"
+					$fullName = $_buildFullName($oid);
+					if($fullName !== '') {
+						$lines[$fullName] = $lines[$tempKey];
+						$lines[$fullName]["infos"]["name"] = $fullName;
+					}
+					unset($lines[$tempKey]);
+				}
+			}
+			//ENDFIX
+
 			return count($lines);
         }
 		

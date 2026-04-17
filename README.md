@@ -78,9 +78,9 @@ $fields = array(
 $pdf = new FPDM('template.pdf');
 $pdf->useCheckboxParser = true; // Checkbox parsing is ignored (default FPDM behaviour) unless enabled with this setting
 $pdf->Load($fields, true);
-$pdf->Merge();
-$pdf->Output();
 ```
+
+View the result [here](http://www.fpdf.org/en/script/ex93.pdf).
 
 You don't have to figure out the technical names of checkbox states. They are retrieved during the parsing process.
 

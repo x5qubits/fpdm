@@ -37,13 +37,7 @@ if (!call_user_func_array('class_exists', $__tmp)) {
              
             return $data;
         }
-        
-        
-        function encode($in) {
-            return gzcompress($in, 9);
-        }
-   }
-
+    }
 }
 //unset $__tmp;
-?>
+>>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
