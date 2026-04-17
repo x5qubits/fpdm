@@ -1,5 +1,5 @@
 {
-  "name": "x5qubits/fpdm",
+  "name": "fiveqb/fpdm",
   "description": "PHP PDF form filling library — actively maintained fork of tmw/fpdm (original by Olivier Plathey). Adds Adobe Reader checkbox compatibility, nested field support, and other fixes.",
   "type": "library",
   "license": "MIT",
@@ -8,20 +8,42 @@
       "name": "Olivier Plathey",
       "email": "oliver@fpdf.org",
       "homepage": "http://www.fpdf.org/",
-      "role": "Author"
+      "role": "Original Author"
     },
     {
-      "name": "x5qubits",
-      "email": "your-email@example.com",
+      "name": "codeshell",
+      "role": "Previous Maintainer",
+      "homepage": "https://github.com/codeshell/"
+    },
+    {
+      "name": "Five Quantum Bits",
+      "homepage": "https://fiveqb.com",
       "role": "Maintainer"
     }
   ],
-  "require": {
-    "php": ">=7.0"
-  },
+  "homepage": "https://github.com/fiveqb/fpdm-fqb",
   "autoload": {
-    "psr-4": {
-      "FPDM\\": "src/"
-    }
+    "classmap": [
+      "src/fpdm.php",
+      "src/filters/"
+    ]
+  },
+  "require": {
+    "php": ">=7.4.0"
+  },
+  "keywords": [
+    "FPDM",
+    "PDF",
+    "forms",
+    "fields",
+    "fill",
+    "populate",
+    "FPDF",
+    "AcroForm",
+    "checkbox"
+  ],
+  "support": {
+    "issues": "https://github.com/fiveqb/fpdm-fqb/issues",
+    "source": "https://github.com/fiveqb/fpdm-fqb"
   }
 }
