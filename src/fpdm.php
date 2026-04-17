@@ -792,15 +792,16 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 			$OldLen=strlen($CurLine);
 			
 			//My PHP4/5 static call hack, only to make the callback $this->replace_value($matches,"$value") possible!
-			$callback_code='$THIS=new FPDM("[_STATIC_]");return $THIS->replace_value($matches,"'.$value.'");';
-			
 			$field_regexp='/^\/(\w+)\s?(\<|\()([^\)\>]*)(\)|\>)/';
-			
+
 			if(preg_match($field_regexp,$CurLine)) {
 				//modify it according to the new value $value
+				$self = $this;
 				$CurLine = preg_replace_callback(
 					$field_regexp,
-					create_function('$matches',$callback_code),
+					function($matches) use ($self, $value) {
+						return $self->replace_value($matches, $value);
+					},
 					$CurLine
 				);
 			}else {
@@ -1182,12 +1183,11 @@ if (!call_user_func_array('class_exists', $__tmp)) {
 		**/
 		function _bin2hex($str) {
 		//----------------------
+			if ($str === '' || $str === null) return '';
 			$hex = "";
-			$i = 0;
-			do {
+			for ($i = 0, $len = strlen($str); $i < $len; $i++) {
 				$hex .= sprintf("%02X", ord($str[$i]));
-				$i++;
-			} while ($i < strlen($str));
+			}
 			return $hex;
 		}	
 		
