@@ -2,7 +2,7 @@
 
 PHP PDF form filling library — actively maintained fork of [tmw/fpdm](https://github.com/codeshell/fpdm) (original script by Olivier Plathey, 2017).
 
-Maintained by [Five Quantum Bits](https://fiveqb.com).
+Maintained by [Five Quantum Bits](https://fiveqb.com) — [github.com/x5qubits/fpdm](https://github.com/x5qubits/fpdm).
 
 ---
 
@@ -57,7 +57,7 @@ Fixed with an early return guard and a `for` loop.
 ## Installation
 
 ```bash
-composer require fiveqb/fpdm
+composer require x5qubits/fpdm
 ```
 
 Or standalone:
