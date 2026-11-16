@@ -946,24 +946,12 @@ if (!call_user_func_array('class_exists', $__tmp)) {
             $verbose_set=($this->verbose&&($this->verbose_level>1));
             //Get the line(s) of the misc field values
             if (isset($this->value_entries["$name"])) {
-<<<<<<< HEAD
-                if (isset($this->value_entries["$name"]["infos"]["checkbox_state_line"])
-                && isset($this->value_entries["$name"]["infos"]["checkbox_no"])
-                && isset($this->value_entries["$name"]["infos"]["checkbox_yes"])) {
-=======
                 if (isset($this->value_entries["$name"]["infos"]["checkbox_state_line"])) {
->>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                     $field_checkbox_line=$this->value_entries["$name"]["infos"]["checkbox_state_line"];
                     if ($field_checkbox_line) {
                         if ($verbose_set) {
                             echo "<br>Change checkbox of the field $name at line $field_checkbox_line to value [$value]";
                         }
-<<<<<<< HEAD
-                        $state = $this->value_entries["$name"]["infos"]["checkbox_no"];
-                        if ($value) {
-                            $state = $this->value_entries["$name"]["infos"]["checkbox_yes"];
-                        }
-=======
                         $stateOff = isset($this->value_entries["$name"]["infos"]["checkbox_no"])
                             ? $this->value_entries["$name"]["infos"]["checkbox_no"]
                             : 'Off';
@@ -986,7 +974,6 @@ if (!call_user_func_array('class_exists', $__tmp)) {
                             $state = $stateOn;
                         }
 
->>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                         $CurLine =$this->pdf_entries[$field_checkbox_line];
                         $OldLen=strlen($CurLine);
                         $CurLine = '/AS /'.$state;
@@ -995,8 +982,6 @@ if (!call_user_func_array('class_exists', $__tmp)) {
                         $this->shift=$this->shift+$Shift;
                         //Saves
                         $this->pdf_entries[$field_checkbox_line]=$CurLine;
-<<<<<<< HEAD
-=======
 
                         // Also update/inject /V so Adobe Reader honours the checked state.
                         // Adobe requires /V (not just /AS). These templates have NO /V entry
@@ -1026,7 +1011,6 @@ if (!call_user_func_array('class_exists', $__tmp)) {
                             $Shift += $vShift;
                         }
 
->>>>>>> b3ddd3e (Initial release: FPDM-FQB fork)
                         return $Shift;
                     // $offset_shift=$this->_set_field_value($field_checkbox_line, $state);
                     } else {
